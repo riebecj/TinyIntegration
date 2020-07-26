@@ -45,16 +45,19 @@ class TinyDBClient:
         _query = Query()
         response = self.client.search(_query[key] == value)
 
-        if not return_all:
-            _response = self._format_response(response[0])
+        if len(response) > 0:
+            if not return_all:
+                _response = self._format_response(response[0])
+            else:
+                _response = list()
+                for doc in response:
+                    _response.append(self._format_response(doc))
         else:
-            _response = list()
-            for doc in response:
-                _response.append(self._format_response(doc))
+            _response = response
 
         return {'response': _response}
 
-    def update_document(self, key, value, update_key, update_value):
+    def update_document(self, *, key: str, value: str, update_key: str, update_value: str) -> dict:
         _query = Query()
         docs_to_update = self.client.search(_query[key] == value)
 
@@ -66,7 +69,7 @@ class TinyDBClient:
         result = {'updated_doc_ids': _doc_ids}
         return result
 
-    def delete_document(self, key, value):
+    def delete_document(self, *, key: str, value: str) -> dict:
         _query = Query()
         docs_to_delete = self.client.search(_query[key] == value)
 
@@ -77,3 +80,19 @@ class TinyDBClient:
 
         result = {'deleted_doc_ids': _doc_ids}
         return result
+
+    def admin_login(self, *, username: str, password: str):
+        _query = Query()
+        response = self.client.search(_query['username'] == username)[0]
+        if response['password'] == password:
+            if response['role'] == 'admin':
+                return True
+        return False
+
+    def user_exists(self, *, username: str) -> bool:
+        _query = Query()
+        response = self.client.search(_query['username'] == username)
+        if len(response) == 1:
+            return True
+        else:
+            return False

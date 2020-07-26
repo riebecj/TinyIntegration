@@ -1,10 +1,11 @@
-import json
 from typing import List, Dict, Union
 import os
 
 from tinydb import TinyDB, Query
 
-from exceptions import DatabaseNotExists
+
+class DatabaseNotExists(Exception):
+    """Raise when Database does not exist"""
 
 
 class TinyDBClient:
@@ -27,7 +28,8 @@ class TinyDBClient:
         else:
             raise DatabaseNotExists(f"Database does not exist: {self.database}")
 
-    def _format_response(self, document) -> dict:
+    @staticmethod
+    def _format_response(document) -> dict:
         return {'ID': document.doc_id, 'content': document}
 
     def list_databases(self) -> list:
@@ -81,7 +83,7 @@ class TinyDBClient:
         result = {'deleted_doc_ids': _doc_ids}
         return result
 
-    def admin_login(self, *, username: str, password: str):
+    def admin_login(self, *, username: str, password: str) -> bool:
         _query = Query()
         response = self.client.search(_query['username'] == username)[0]
         if response['password'] == password:

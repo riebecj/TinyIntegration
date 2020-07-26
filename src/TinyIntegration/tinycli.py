@@ -13,7 +13,8 @@ class MongoCli:
     def __init__(self):
         pass
 
-    def _parse_file(self, f):
+    @staticmethod
+    def _parse_file(*, f: str) -> dict:
         if os.path.isfile(f):
             with open(f, 'rt') as data_file:
                 json = data_file.read()
@@ -23,10 +24,11 @@ class MongoCli:
                     try:
                         json = dict(json)
                         return json
-                    except:
+                    except Exception as _:
                         raise ValueError(f'Cannot coerce {json} into dict.')
 
-    def valid_args(self, args):
+    @staticmethod
+    def valid_args(*, args: argparse.Namespace) -> bool:
         operation = args.operation
 
         if operation == 'create':
@@ -113,14 +115,14 @@ class MongoCli:
                 shell=True,
             )
 
-        elif not self.valid_args(args):
+        elif not self.valid_args(args=args):
             parser.print_help()
 
         else:
             operation = args.operation
 
             if operation == 'create':
-                TinyDBClient(database=args.database).create_document(document_to_insert=self._parse_file(args.file))
+                TinyDBClient(database=args.database).create_document(document_to_insert=self._parse_file(f=args.file))
             elif operation == 'read':
                 TinyDBClient(database=args.database).read_document(key=args.key, value=args.value)
             elif operation == 'delete':
@@ -159,7 +161,7 @@ class MongoCli:
                     print(f"Successfully created user: {args.username}")
 
             elif operation == 'create-db':
-                with open(f'data/{args.database}.json', 'w') as fp:
+                with open(f'data/{args.database}.json', 'w') as _:
                     pass
                 print(f"Created {args.database} database")
 

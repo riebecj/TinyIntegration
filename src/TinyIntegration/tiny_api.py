@@ -3,6 +3,7 @@ import json
 import sys
 
 from bottle import request, abort, Bottle, ServerAdapter
+import yaml
 
 from tiny_db_client import TinyDBClient
 
@@ -10,7 +11,7 @@ from tiny_db_client import TinyDBClient
 class MyWSGIRefServer(ServerAdapter):
     server = None
 
-    def run(self, *, handler) -> None:
+    def run(self, handler) -> None:
         from wsgiref.simple_server import make_server, WSGIRequestHandler
         if self.quiet:
             class QuietHandler(WSGIRequestHandler):
@@ -36,6 +37,8 @@ class TinyApi:
         self._api.route('/create/<database>', method='POST', callback=self._create_doc)
         self._api.route('/read/<database>/<key>/<value>', method='GET', callback=self._read_doc)
         self._api.route('/read/<database>/<key>/<value>/all', method='GET', callback=self._read_doc)
+        self._api.route('/read/<database>/<key>/<value>/yaml', method='GET', callback=self._read_doc)
+        self._api.route('/read/<database>/<key>/<value>/yaml/all', method='GET', callback=self._read_doc)
         self._api.route('/update/<database>/<key>/<value>/<update_key>/<update_value>', method='GET',
                         callback=self._update_doc)
         self._api.route('/delete/<database>/<key>/<value>', method='GET', callback=self._delete_doc)
@@ -81,6 +84,9 @@ class TinyApi:
             value=self._coerce_int(value=value),
             return_all=str(request.url).endswith('all')
         )
+
+        if 'yaml' in str(request.url):
+            result = yaml.dump(yaml.load(json.dumps(result), Loader=yaml.Loader))
 
         return result
 

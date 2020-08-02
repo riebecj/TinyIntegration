@@ -3,6 +3,7 @@ from getpass import getpass
 import subprocess
 import argparse
 import hashlib
+import json
 import sys
 import os
 
@@ -17,15 +18,12 @@ class MongoCli:
     def _parse_file(*, f: str) -> dict:
         if os.path.isfile(f):
             with open(f, 'rt') as data_file:
-                json = data_file.read()
-                if isinstance(json, dict):
-                    return json
-                else:
-                    try:
-                        json = dict(json)
-                        return json
-                    except Exception as _:
-                        raise ValueError(f'Cannot coerce {json} into dict.')
+                _json = data_file.read()
+                try:
+                    _json = json.loads(_json)
+                    return _json
+                except Exception as _:
+                    raise ValueError(f'Cannot coerce {json} into dict.')
 
     @staticmethod
     def valid_args(*, args: argparse.Namespace) -> bool:
